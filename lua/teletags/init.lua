@@ -66,7 +66,7 @@ local generate_tag_list = function(opts)
     return deduped
 end
 
-local make_picker = function(found_tags, opts)
+local make_tags_picker = function(found_tags, opts)
     local custom_tags_finder = function(opts)
         local previewers = require('telescope.previewers')
         local conf = require('telescope.config').values
@@ -154,7 +154,7 @@ end
 
 M.select = function(opts)
     local found_tags = generate_tag_list(opts)
-    make_picker(found_tags, opts)
+    make_tags_picker(found_tags, opts)
 end
 
 M.jump_or_select = function(opts)
@@ -164,7 +164,7 @@ M.jump_or_select = function(opts)
     elseif #found_tags == 0 then
         vim.notify("No tags found", "normal", {title = "teletags"})
     else
-        make_picker(found_tags, opts)
+        make_tags_picker(found_tags, opts)
     end
 end
 
