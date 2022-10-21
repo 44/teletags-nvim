@@ -15,6 +15,8 @@ local find_tags = function(tag)
     end
 end
 
+local relatives_mapping = {}
+
 local generate_tag_list = function(opts)
     local found = {}
 
@@ -166,6 +168,75 @@ M.jump_or_select = function(opts)
     else
         make_tags_picker(found_tags, opts)
     end
+end
+
+M.setup = function(opts)
+    relatives_mapping = opts.relatives
+end
+
+M.select_related = function(opts)
+    local current = vim.fn.fnamemodify(vim.fn.expand('%'), ':~:.')
+    local resolved = {}
+    for k, v in pairs(relatives_mapping) do
+        local wo_placeholder = k -- k:gsub('{}', '*')
+        local ptrn = vim.fn.glob2regpat(wo_placeholder)
+        for i=1,9 do
+            ptrn = ptrn:gsub('=' .. i, '\\([^/]*\\)')
+
+        end
+        local matched = vim.fn.matchlist(current, ptrn)
+        if #matched > 0 then
+            vim.notify(ptrn .. ' => ' .. matched[2] .. ' => ' .. v )
+            for ik, iv in pairs(mappings) do
+                for ip, vp in ipairs(matched) do
+                    if ip > 1 then
+                        if #vp > 0 then
+                            local to_find = ik:gsub('=' .. (ip - 1), vp)
+                            resolved[to_find] = iv
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    local result = {}
+    for k, v in pairs(resolved) do
+        local files = vim.fn.glob(k, true, true)
+        for _, f in ipairs(files) do
+            result[f] = v
+        end
+    end
+    local flat_results = {}
+    for k, v in pairs(result) do
+        table.insert(flat_results, k)
+    end
+
+    local previewers = require('telescope.previewers')
+    local finders = require('telescope.finders')
+    local conf = require('telescope.config').values
+    local pickers = require('telescope.pickers')
+    local make_entry = require('telescope.make_entry')
+    local action_state = require "telescope.actions.state"
+    local action_set = require "telescope.actions.set"
+    local sorters = require "telescope.sorters"
+    local opts = {}
+
+    pickers.new(opts, {
+        prompt_title = "Relatives",
+        finder = finders.new_table {
+            results = flat_results,
+            entry_maker = function(e)
+                return {
+                    ordinal = e,
+                    display = e,
+                    value = e,
+                }
+            end,
+        },
+        previewer = conf.file_previewer(opts),
+        sorter = conf.generic_sorter(opts)
+    }):find()
 end
 
 return M
