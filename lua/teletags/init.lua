@@ -91,14 +91,6 @@ local make_picker = function(found_tags, opts)
           for i, ctags_file in ipairs(tagfiles) do
             tagfiles[i] = vim.fn.expand(ctags_file, true)
           end
-          -- ApplyRampOverrides
-          -- if vim.tbl_isempty(tagfiles) then
-          --   utils.notify("builtin.tags", {
-          --     msg = "No tags file found. Create one with ctags -R",
-          --     level = "ERROR",
-          --   })
-          --   return
-          -- end
           opts.entry_maker = vim.F.if_nil(opts.entry_maker, make_entry.gen_from_ctags(opts))
 
           pickers.new(opts, {
@@ -106,7 +98,6 @@ local make_picker = function(found_tags, opts)
             finder = finder,
             previewer = previewers.ctags.new(opts),
             sorter = conf.generic_sorter(opts),
-            --sorter = sorters.get_substr_matcher(opts),
             attach_mappings = function()
               action_set.select:enhance {
                 post = function()
@@ -140,9 +131,6 @@ local make_picker = function(found_tags, opts)
     local picker_opts = {}
     picker_opts['bufnr'] = 0
 
-    --theme['default_text'] = preselected_text
-    --theme['default_text'] = '!test'
-    -- theme['bufnr'] = 0
     custom_tags_finder(picker_opts)
 end
 
@@ -152,9 +140,6 @@ local navigate_to_tag = function(selection)
     end)
 
     vim.cmd('e ' .. ' +/' .. vim.fn.escape(scode:sub(2, -2), '\\ ') .. ' ' .. vim.fn.escape(selection.filename, '\\ '))
-    --vim.cmd "norm! gg"
-    --vim.fn.search(scode:sub(2, -2))  -- remove leading and trailing /
-    --vim.cmd "norm! zz"
 end
 
 local M = {}
