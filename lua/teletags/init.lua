@@ -187,7 +187,7 @@ M.select_related = function(opts)
         local matched = vim.fn.matchlist(current, ptrn)
         if #matched > 0 then
             vim.notify(ptrn .. ' => ' .. matched[2] .. ' => ' .. v )
-            for ik, iv in pairs(mappings) do
+            for ik, iv in pairs(relatives_mapping) do
                 for ip, vp in ipairs(matched) do
                     if ip > 1 then
                         if #vp > 0 then
