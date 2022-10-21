@@ -171,7 +171,7 @@ M.jump_or_select = function(opts)
 end
 
 M.setup = function(opts)
-    relatives_mapping = opts.relatives
+    relatives_mapping = opts["relatives"]
 end
 
 M.select_related = function(opts)
