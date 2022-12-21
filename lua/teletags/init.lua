@@ -8,6 +8,7 @@ define here the lua functions that activate the plugin ]]
 local log = require('plenary.log').new({
     plugin = 'teletags',
     level = "debug",
+    use_console = false,
 })
 
 local find_tags = function(tag)
@@ -205,20 +206,25 @@ M.select_related = function(opts)
         end
     end
 
-    log.debug("Resolved:", resolved)
-    local result = {}
+    local matchers = {}
     for k, v in pairs(resolved) do
-        log.debug('Globbing', k, vim.fn.glob2regpat(k))
-        local files = vim.fn.glob(k, true, true)
-        for _, f in ipairs(files) do
-            result[f] = v
-        end
-    end
-    local flat_results = {}
-    for k, v in pairs(result) do
-        table.insert(flat_results, k)
+        table.insert(matchers, vim.fn.glob2regpat(k))
     end
 
+    -- log.debug("Resolved:", resolved)
+    -- local result = {}
+    -- for k, v in pairs(resolved) do
+    --     log.debug('Globbing', k, vim.fn.glob2regpat(k))
+    --     local files = vim.fn.glob(k, true, true)
+    --     for _, f in ipairs(files) do
+    --         result[f] = v
+    --     end
+    -- end
+    -- local flat_results = {}
+    -- for k, v in pairs(result) do
+    --     table.insert(flat_results, k)
+    -- end
+    --
     local previewers = require('telescope.previewers')
     local finders = require('telescope.finders')
     local conf = require('telescope.config').values
@@ -230,13 +236,18 @@ M.select_related = function(opts)
     local opts = {}
     local maker = make_entry.gen_from_file(opts)
     local my_maker = function(line)
-        log.debug("Processing line:", line)
-        local cpp_file = ".cpp"
-        if line:sub(-#cpp_file) == cpp_file then
-            log.debug("Filtered out")
+        local found = false
+        for _, v in ipairs(matchers) do
+            local m = vim.fn.match(line, v)
+            if m > -1 then
+                found = true
+            end
+        end
+        if found then
+            return maker(line)
+        else
             return
         end
-        return maker(line)
     end
     require"telescope.builtin".find_files( { entry_maker = my_maker} )
 
