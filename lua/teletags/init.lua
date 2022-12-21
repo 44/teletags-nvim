@@ -208,6 +208,7 @@ M.select_related = function(opts)
     log.debug("Resolved:", resolved)
     local result = {}
     for k, v in pairs(resolved) do
+        log.debug('Globbing', k, vim.fn.glob2regpat(k))
         local files = vim.fn.glob(k, true, true)
         for _, f in ipairs(files) do
             result[f] = v
