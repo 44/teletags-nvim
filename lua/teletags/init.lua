@@ -205,6 +205,7 @@ M.select_related = function(opts)
         end
     end
 
+    log.debug("Resolved:", resolved)
     local result = {}
     for k, v in pairs(resolved) do
         local files = vim.fn.glob(k, true, true)
