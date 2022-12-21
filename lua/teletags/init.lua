@@ -5,6 +5,10 @@ define here the lua functions that activate the plugin ]]
 -- local config = require("teletags.config")
 
 ------------------
+local log = require('plenary.log').new({
+    plugin = 'teletags',
+    level = "debug",
+})
 
 local find_tags = function(tag)
     local found_tags = vim.fn.taglist('^\\C' .. tag .. '$')
@@ -171,6 +175,7 @@ M.jump_or_select = function(opts)
 end
 
 M.setup = function(opts)
+    log.debug('mapping', vim.inspect(opts))
     relatives_mapping = opts["relatives"]
 end
 
