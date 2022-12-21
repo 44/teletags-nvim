@@ -230,8 +230,10 @@ M.select_related = function(opts)
     local opts = {}
     local maker = make_entry.gen_from_file(opts)
     local my_maker = function(line)
+        log.debug("Processing line:", line)
         local cpp_file = ".cpp"
         if line:sub(-#cpp_file) == cpp_file then
+            log.debug("Filtered out")
             return
         end
         return maker(line)
