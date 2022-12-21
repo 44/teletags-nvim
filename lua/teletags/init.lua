@@ -228,24 +228,33 @@ M.select_related = function(opts)
     local action_set = require "telescope.actions.set"
     local sorters = require "telescope.sorters"
     local opts = {}
-    local maker = make_entry.from_file
+    local maker = make_entry.gen_from_file(opts)
+    local my_maker = function(line)
+        local cpp_file = ".cpp"
+        if line:sub(-#cpp_file) == cpp_file then
+            return
+        end
+        return maker(line)
+    end
+    require"telescope.builtin".find_files( { entry_maker = my_maker} )
 
-    pickers.new(opts, {
-        prompt_title = "Relatives",
-        finder = finders.new_table {
-            results = flat_results,
-            entry_maker = maker,
-            entry_maker1 = function(e)
-                return {
-                    ordinal = e,
-                    display = e,
-                    value = e,
-                }
-            end,
-        },
-        previewer = conf.file_previewer(opts),
-        sorter = conf.generic_sorter(opts)
-    }):find()
+    -- pickers.new(opts, {
+    --     prompt_title = "Relatives",
+    --     finder = finders.new_on
+    --     finder1 = finders.new_table {
+    --         results = flat_results,
+    --         entry_maker = maker,
+    --         entry_maker1 = function(e)
+    --             return {
+    --                 ordinal = e,
+    --                 display = e,
+    --                 value = e,
+    --             }
+    --         end,
+    --     },
+    --     previewer = conf.file_previewer(opts),
+    --     sorter = conf.generic_sorter(opts)
+    -- }):find()
 end
 
 return M
