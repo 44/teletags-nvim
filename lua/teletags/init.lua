@@ -211,20 +211,6 @@ M.select_related = function(opts)
         table.insert(matchers, vim.fn.glob2regpat(k))
     end
 
-    -- log.debug("Resolved:", resolved)
-    -- local result = {}
-    -- for k, v in pairs(resolved) do
-    --     log.debug('Globbing', k, vim.fn.glob2regpat(k))
-    --     local files = vim.fn.glob(k, true, true)
-    --     for _, f in ipairs(files) do
-    --         result[f] = v
-    --     end
-    -- end
-    -- local flat_results = {}
-    -- for k, v in pairs(result) do
-    --     table.insert(flat_results, k)
-    -- end
-    --
     local previewers = require('telescope.previewers')
     local finders = require('telescope.finders')
     local conf = require('telescope.config').values
@@ -251,23 +237,6 @@ M.select_related = function(opts)
     end
     require"telescope.builtin".find_files( { entry_maker = my_maker} )
 
-    -- pickers.new(opts, {
-    --     prompt_title = "Relatives",
-    --     finder = finders.new_on
-    --     finder1 = finders.new_table {
-    --         results = flat_results,
-    --         entry_maker = maker,
-    --         entry_maker1 = function(e)
-    --             return {
-    --                 ordinal = e,
-    --                 display = e,
-    --                 value = e,
-    --             }
-    --         end,
-    --     },
-    --     previewer = conf.file_previewer(opts),
-    --     sorter = conf.generic_sorter(opts)
-    -- }):find()
 end
 
 return M
