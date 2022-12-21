@@ -228,12 +228,14 @@ M.select_related = function(opts)
     local action_set = require "telescope.actions.set"
     local sorters = require "telescope.sorters"
     local opts = {}
+    local maker = make_entry.from_file
 
     pickers.new(opts, {
         prompt_title = "Relatives",
         finder = finders.new_table {
             results = flat_results,
-            entry_maker = function(e)
+            entry_maker = maker,
+            entry_maker1 = function(e)
                 return {
                     ordinal = e,
                     display = e,
