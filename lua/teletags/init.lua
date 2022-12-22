@@ -20,8 +20,6 @@ local find_tags = function(tag)
     end
 end
 
-local relatives_mapping = {}
-
 local generate_tag_list = function(opts)
     local found = {}
 
@@ -173,70 +171,6 @@ M.jump_or_select = function(opts)
     else
         make_tags_picker(found_tags, opts)
     end
-end
-
-M.setup = function(opts)
-    log.debug('mapping', vim.inspect(opts))
-    relatives_mapping = opts["relatives"]
-end
-
-M.select_related = function(opts)
-    local current = vim.fn.fnamemodify(vim.fn.expand('%'), ':~:.')
-    local resolved = {}
-    for k, v in pairs(relatives_mapping) do
-        local wo_placeholder = k -- k:gsub('{}', '*')
-        local ptrn = vim.fn.glob2regpat(wo_placeholder)
-        for i=1,9 do
-            ptrn = ptrn:gsub('=' .. i, '\\([^/]*\\)')
-
-        end
-        local matched = vim.fn.matchlist(current, ptrn)
-        if #matched > 0 then
-            vim.notify(ptrn .. ' => ' .. matched[2] .. ' => ' .. v )
-            for ik, iv in pairs(relatives_mapping) do
-                for ip, vp in ipairs(matched) do
-                    if ip > 1 then
-                        if #vp > 0 then
-                            local to_find = ik:gsub('=' .. (ip - 1), vp)
-                            resolved[to_find] = iv
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    local matchers = {}
-    for k, v in pairs(resolved) do
-        table.insert(matchers, vim.fn.glob2regpat(k))
-    end
-
-    local previewers = require('telescope.previewers')
-    local finders = require('telescope.finders')
-    local conf = require('telescope.config').values
-    local pickers = require('telescope.pickers')
-    local make_entry = require('telescope.make_entry')
-    local action_state = require "telescope.actions.state"
-    local action_set = require "telescope.actions.set"
-    local sorters = require "telescope.sorters"
-    local opts = {}
-    local maker = make_entry.gen_from_file(opts)
-    local my_maker = function(line)
-        local found = false
-        for _, v in ipairs(matchers) do
-            local m = vim.fn.match(line, v)
-            if m > -1 then
-                found = true
-            end
-        end
-        if found then
-            return maker(line)
-        else
-            return
-        end
-    end
-    require"telescope.builtin".find_files( { entry_maker = my_maker} )
-
 end
 
 return M
