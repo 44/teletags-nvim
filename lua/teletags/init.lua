@@ -181,7 +181,7 @@ local function generate_preview_window(found_tags)
         local popup_opts = { enter=false, time=20000, line="cursor-10", col="cursor+5" }
         local result = pp.create({"this is preview", "of the tag", "under cursor"}, popup_opts)
         -- todo setup autocommands
-        vim.cmd("autocmd CursorMoved 0 ++once ++nested :lua require('plenary.window').try_close(" .. result.win_id .. ", true)")
+        vim.cmd("autocmd CursorMoved 0 ++once ++nested :lua require('plenary.window').try_close(" .. result .. ", true)")
         -- todo setup keymaps
     else
         return
