@@ -173,4 +173,27 @@ M.jump_or_select = function(opts)
     end
 end
 
+local function generate_preview_window(found_tags)
+    local current = 0
+    local ok, pp = pcall(require, 'plenary.popup')
+    if ok then
+        -- read file
+        local popup_opts = { enter=false, time=20000, line="cursor-10", col="cursor+5" }
+        local result = pp.create({"this is preview", "of the tag", "under cursor"}, popup_opts)
+        -- todo setup autocommands
+        vim.cmd("autocmd CursorMoved 0 ++once ++nested :lua require('plenary.window').try_close(" .. result.win_id .. ", true)")
+        -- todo setup keymaps
+    else
+        return
+    end
+end
+
+M.toggle_tag_preview = function(opts)
+    local found_tags = generate_tag_list(opts)
+    if #found_tags == 0 then
+        return
+    end
+    generate_preview_window(found_tags)
+end
+
 return M
