@@ -187,6 +187,16 @@ local function popup_alive()
     return false
 end
 
+local function cut_content(content, middle)
+
+    for i = middle, 1, -1 do
+        if content[i]:match('^%s*$') then
+            return {unpack(content, i, #content)}
+        end
+    end
+    return content
+end
+
 local function populate_preview()
     if popup_alive() then
         local bufnr = vim.fn.winbufnr(current_popup.win_id)
@@ -201,6 +211,7 @@ local function populate_preview()
         end
         local cutoff = tonumber(grepped_pos[1])
         local content = vim.fn.systemlist('head -n ' .. (cutoff+5) .. " " .. fname .. " | tail -n 8")
+        content = cut_content(content, 3)
         local maxlen = 0
         for i, l in ipairs(content) do
             if #l > maxlen then
