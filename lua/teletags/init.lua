@@ -210,7 +210,8 @@ local function populate_preview()
             return
         end
         local cutoff = tonumber(grepped_pos[1])
-        local content = vim.fn.systemlist('head -n ' .. (cutoff+5) .. " " .. fname .. " | tail -n 8")
+        -- todo: optimize - use tail -n "+X" file | head -n "Y-X+1"
+        local content = vim.fn.systemlist('tail -n ' .. (cutoff-5) .. " " .. fname .. " | head -n 8")
         content = cut_content(content, 3)
         local maxlen = 0
         for i, l in ipairs(content) do
