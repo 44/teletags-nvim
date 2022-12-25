@@ -177,7 +177,8 @@ local current_popup = {
     win_id = nil,
     win_id_title = nil,
     found_tags = {},
-    pos = 1
+    pos = 1,
+    hl_id = -1,
 }
 
 local function popup_alive()
@@ -198,10 +199,10 @@ end
 local function cut_content(content, middle)
     for i = middle, 1, -1 do
         if content[i]:match('^%s*$') then
-            return add_padding( {unpack(content, i, #content)} )
+            return {lines=add_padding( {unpack(content, i, #content)} ), hl=(middle-i+2)}
         end
     end
-    return add_padding( {unpack(content, 2, #content)} )
+    return {lines=add_padding( {unpack(content, 2, #content)} ), hl=5}
 end
 
 local function populate_preview()
@@ -219,9 +220,9 @@ local function populate_preview()
         local cutoff = tonumber(grepped_pos[1])
         -- todo: optimize - use tail -n "+X" file | head -n "Y-X+1"
         local content = vim.fn.systemlist('tail -n +' .. (cutoff-5) .. " " .. fname .. " | head -n 12")
-        content = cut_content(content, 5)
+        local c = cut_content(content, 5)
         local maxlen = 0
-        for i, l in ipairs(content) do
+        for i, l in ipairs(c.lines) do
             if #l > maxlen then
                 maxlen = #l
             end
@@ -229,7 +230,11 @@ local function populate_preview()
 
         vim.api.nvim_win_set_config(current_popup.win_id, {width = maxlen + 5, height=8})
         vim.api.nvim_win_set_config(current_popup.win_id_title, {width = maxlen + 5})
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, content)
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, c.lines)
+        if current_popup.hl_id > 0 then
+            vim.fn.matchdelete(current_popup.hl_id, current_popup.win_id)
+        end
+        current_popup.hl_id = vim.fn.matchaddpos("CursorLine", {c.hl}, 1000, -1, {window=current_popup.win_id})
         local short_name = vim.fn.fnamemodify(fname, ':t')
         local title = " [" .. current_popup.pos .. "/" .. (#current_popup.found_tags) .. "] " .. short_name
         bufnr = vim.fn.winbufnr(current_popup.win_id_title)
@@ -255,6 +260,7 @@ local function generate_preview_window(found_tags)
         local result = pp.create(content, popup_opts)
         current_popup.win_id = result
         current_popup.win_id_title = pp.create(content, title_opts)
+        current_popup.hl_id = -1
         local bufnr = vim.fn.winbufnr(current_popup.win_id)
         vim.api.nvim_buf_set_option(bufnr, "filetype", ft)
         vim.cmd("autocmd CursorMoved * ++once ++nested :lua require('teletags').close_tag_preview()")
