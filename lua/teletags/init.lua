@@ -194,7 +194,7 @@ local function cut_content(content, middle)
             return {unpack(content, i, #content)}
         end
     end
-    return content
+    return {unpack(content, 2, #content)}
 end
 
 local function populate_preview()
@@ -211,8 +211,8 @@ local function populate_preview()
         end
         local cutoff = tonumber(grepped_pos[1])
         -- todo: optimize - use tail -n "+X" file | head -n "Y-X+1"
-        local content = vim.fn.systemlist('tail -n +' .. (cutoff-5) .. " " .. fname .. " | head -n 8")
-        content = cut_content(content, 3)
+        local content = vim.fn.systemlist('tail -n +' .. (cutoff-5) .. " " .. fname .. " | head -n 12")
+        content = cut_content(content, 5)
         local maxlen = 0
         for i, l in ipairs(content) do
             if #l > maxlen then
@@ -233,8 +233,16 @@ end
 local function generate_preview_window(found_tags)
     local ok, pp = pcall(require, 'plenary.popup')
     if ok then
-        local popup_opts = { enter=false, time=20000, line="cursor-10", col="cursor+5", height=8}
-        local title_opts = { enter=false, time=20000, line="cursor-11", col="cursor+5", height=1, highlight="Title"}
+        local cursor = vim.api.nvim_win_get_cursor(0)
+        local popup_line = "cursor-10"
+        local title_line = "cursor-11"
+        if cursor[1] < 10 then
+            popup_line = "cursor+2"
+            title_line = "cursor+1"
+        end
+
+        local popup_opts = { enter=false, time=20000, line=popup_line, col="cursor+5", height=8}
+        local title_opts = { enter=false, time=20000, line=title_line, col="cursor+5", height=1, highlight="Title"}
         local content = {""}
         local ft = vim.bo.filetype
         local result = pp.create(content, popup_opts)
@@ -269,7 +277,9 @@ M.toggle_tag_preview = function(opts)
     else
         current_popup.found_tags = generate_tag_list(opts)
         current_popup.pos = 1
-        generate_preview_window(found_tags)
+        if #current_popup.found_tags > 0 then
+            generate_preview_window(found_tags)
+        end
     end
 end
 
