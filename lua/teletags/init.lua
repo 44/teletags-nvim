@@ -187,14 +187,21 @@ local function popup_alive()
     return false
 end
 
-local function cut_content(content, middle)
+local function add_padding(content)
+    local result = {}
+    for _, v in ipairs(content) do
+        table.insert(result, " " .. v)
+    end
+    return result
+end
 
+local function cut_content(content, middle)
     for i = middle, 1, -1 do
         if content[i]:match('^%s*$') then
-            return {unpack(content, i, #content)}
+            return add_padding( {unpack(content, i, #content)} )
         end
     end
-    return {unpack(content, 2, #content)}
+    return add_padding( {unpack(content, 2, #content)} )
 end
 
 local function populate_preview()
@@ -224,7 +231,7 @@ local function populate_preview()
         vim.api.nvim_win_set_config(current_popup.win_id_title, {width = maxlen + 5})
         vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, content)
         local short_name = vim.fn.fnamemodify(fname, ':t')
-        local title = "[" .. current_popup.pos .. "/" .. (#current_popup.found_tags) .. "] " .. short_name
+        local title = " [" .. current_popup.pos .. "/" .. (#current_popup.found_tags) .. "] " .. short_name
         bufnr = vim.fn.winbufnr(current_popup.win_id_title)
         vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, {title})
     end
