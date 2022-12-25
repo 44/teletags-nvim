@@ -241,7 +241,7 @@ local function generate_preview_window(found_tags)
             title_line = "cursor+1"
         end
 
-        local popup_opts = { enter=false, time=20000, line=popup_line, col="cursor+5", height=8}
+        local popup_opts = { enter=false, time=20000, line=popup_line, col="cursor+5", height=8, highlight="Pmenu"}
         local title_opts = { enter=false, time=20000, line=title_line, col="cursor+5", height=1, highlight="Title"}
         local content = {""}
         local ft = vim.bo.filetype
