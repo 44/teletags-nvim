@@ -192,17 +192,15 @@ local function populate_preview()
         local bufnr = vim.fn.winbufnr(current_popup.win_id)
         local current = current_popup.found_tags[current_popup.pos]
         local fname = current.filename
-        local match = string.sub(current.cmd, 2, -2):gsub("[%]~*]", function(x) return '\\' .. x end)
+        local match = string.sub(current.cmd, 2, -2):gsub([[\/]], "/"):gsub("[%]~*]", function(x) return '\\' .. x end)
         cmd = 'grep -n "' .. match .. '" "' .. fname .. '" | cut -d : -f 1'
-        -- print('Running grep', cmd)
 
         local grepped_pos = vim.fn.systemlist(cmd)
-        -- print('Found', vim.inspect(grepped_pos))
         if #grepped_pos == 0 then
             return
         end
-        local pos = tonumber(grepped_pos[1])
-        local content = vim.fn.systemlist('head -n ' .. (pos+5) .. " " .. fname .. " | tail -n 8")
+        local cutoff = tonumber(grepped_pos[1])
+        local content = vim.fn.systemlist('head -n ' .. (cutoff+5) .. " " .. fname .. " | tail -n 8")
         local maxlen = 0
         for i, l in ipairs(content) do
             if #l > maxlen then
