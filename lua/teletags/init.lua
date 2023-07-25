@@ -12,7 +12,10 @@ local log = require('plenary.log').new({
 })
 
 local find_tags = function(tag)
-    local found_tags = vim.fn.taglist('^\\C' .. tag .. '$')
+    -- local found_tags = vim.fn.taglist('^\\C' .. tag .. '$')
+    log.debug('Generating taglis', tag)
+    local found_tags = vim.fn.taglist(tag)
+    log.debug('Found', found_tags)
     if found_tags then
         return found_tags
     else
@@ -24,11 +27,14 @@ local generate_tag_list = function(opts)
     local found = {}
 
     local cword = vim.fn.expand('<cword>')
+    log.debug("Searching for ", cword)
 
     if cword == nil or cword == '' then
+        log.debug('Nothing')
         return {}
     end
 
+    if false then
     ok, ts_utils = pcall(require, 'nvim-treesitter.ts_utils')
     if ok then
         local node = ts_utils.get_node_at_cursor()
@@ -36,20 +42,22 @@ local generate_tag_list = function(opts)
             local node_type = node:type()
 
             if node_type == 'identifier' or node_type == 'type_identifier' then
+                local get_node_text = vim.treesitter.get_node_text or vim.treesitter.query.get_node_text
                 local parent = node:parent()
                 if parent then
                     local parent_type = parent:type()
                     if parent_type == 'qualified_identifier' then
                         -- qualified is being searched_first
-                        local parent_text = vim.treesitter.query.get_node_text(parent, 0)
+                        local parent_text = get_node_text(parent, 0)
                         table.insert(found, find_tags(parent_text))
                     end
                 end
                 -- identifier from treesitter next
-                local node_text = vim.treesitter.query.get_node_text(node, 0)
+                local node_text = get_node_text(node, 0)
                 table.insert(found, find_tags(node_text))
             end
         end
+    end
     end
     -- end finally cword
     table.insert(found, find_tags(cword))
@@ -72,6 +80,8 @@ local generate_tag_list = function(opts)
 end
 
 local make_tags_picker = function(found_tags, opts)
+    local cword = vim.fn.expand('<cword>')
+    log.debug('Picker for', found_tags)
     local custom_tags_finder = function(opts)
         local previewers = require('telescope.previewers')
         local conf = require('telescope.config').values
@@ -80,26 +90,27 @@ local make_tags_picker = function(found_tags, opts)
         local action_state = require "telescope.actions.state"
         local action_set = require "telescope.actions.set"
         local sorters = require "telescope.sorters"
+        local utils = require "telescope.utils"
 
         local finder = require 'telescope.finders'.new_dynamic {
             fn = function()
                 local results = {}
                 for _, v in ipairs(found_tags) do
-                    table.insert(results, v.name .. '\t' .. v.filename .. '\t' .. v.cmd .. ';"\t' .. v.kind)
+                    table.insert(results, 'tags:' .. v.name .. '\t' .. v.filename .. '\t' .. v.cmd .. ';"\t' .. v.kind)
                 end
                 return results
             end,
             entry_maker = make_entry.gen_from_ctags(opts)
         }
 
-          local tagfiles = opts.ctags_file and { opts.ctags_file } or vim.fn.tagfiles()
-          for i, ctags_file in ipairs(tagfiles) do
-            tagfiles[i] = vim.fn.expand(ctags_file, true)
-          end
-          opts.entry_maker = vim.F.if_nil(opts.entry_maker, make_entry.gen_from_ctags(opts))
+          -- local tagfiles = opts.ctags_file and { opts.ctags_file } or vim.fn.tagfiles()
+          -- for i, ctags_file in ipairs(tagfiles) do
+          --   tagfiles[i] = vim.fn.expand(ctags_file, true)
+          -- end
+          -- opts.entry_maker = vim.F.if_nil(opts.entry_maker, make_entry.gen_from_ctags(opts))
 
           pickers.new(opts, {
-            prompt_title = "Tags",
+            prompt_title = cword,
             finder = finder,
             previewer = previewers.ctags.new(opts),
             sorter = conf.generic_sorter(opts),
@@ -107,6 +118,7 @@ local make_tags_picker = function(found_tags, opts)
               action_set.select:enhance {
                 post = function()
                   local selection = action_state.get_selected_entry()
+                  log.debug('Selected', selection)
                   if not selection then
                     return
                   end
@@ -163,6 +175,7 @@ M.select = function(opts)
 end
 
 M.jump_or_select = function(opts)
+    log.debug('Jump or select')
     local found_tags = generate_tag_list(opts)
     if #found_tags == 1 then
         navigate_to_tag(found_tags[1])
@@ -295,5 +308,5 @@ M.toggle_tag_preview = function(opts)
         end
     end
 end
-
+log.debug('Init teletags')
 return M
